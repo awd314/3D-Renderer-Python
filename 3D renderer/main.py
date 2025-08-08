@@ -92,7 +92,7 @@ class Main:
                             currValue = ""
                         elif c == '}':
                             self.objects.append(Object3D(currVertices, currMesh))
-                        elif c.lower() in "-0123456789ABCDEF":
+                        elif c.upper() in "-0123456789ABCDEF":
                             currValue += c
     
 
