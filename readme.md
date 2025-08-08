@@ -15,11 +15,11 @@ This is a simple 3D renderer capable of displaying a few solids at once. It does
 
 Everything about the objects to display is done in the `objects.txt` file. By default, there's a dodecagonal prism. The format of this file is as follows : 
 
-Reserved caracters are `{} [] () # , - and digits`. To include comments, begin a line with `?`. Indents and spaces are not required. To declare a new object, use `{}`. Each object contains a list, for vertices and for the mesh, both declared with `[]`.
+Reserved characters are `{} [] () # , - and digits`. To include comments, begin a line with `?`. Indents and spaces are not required. To declare a new object, use `{}`. Each object contains a list, for vertices and for the mesh, both declared with `[]`.
 
 ### Vertices
 
-**The first list is always for the vertices** and it contains tuples with three coordinates in the format `(x, y, z,)`. Each tuple is declared with `()` and each coordinate is separated with a `,` even the last one. **No separator is needed for the vectors**, simply open and close brackets to specify them. **Do not add seperators from the reserved caracters**, as it will cause issues when reading the file.
+**The first list is always for the vertices** and it contains tuples with three coordinates in the format `(x, y, z,)`. Each tuple is declared with `()` and each coordinate is separated with a `,` even the last one. **No separator is needed for the vectors**, simply open and close brackets to specify them. **Do not add seperators from the reserved characters**, as it will cause issues when reading the file.
 
 ### Mesh
 

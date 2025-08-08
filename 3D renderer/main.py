@@ -30,7 +30,7 @@ class Main:
     def Loop(self):
         """
         Runs the methods necessary to update the scene. First it reads all key
-        and mouse events, then it calls the renderer to update the vertices' positions,
+        and mouse events, then it calls the renderer to update the vertices positions,
         and then it displays the objects on the screen and loops.
         """
         while self.running:
@@ -64,7 +64,7 @@ class Main:
             commentFlag = False
 
             for line in file:
-                for c in line:
+                for c in line: # Reads the file and catches special characters
                     if c == "?":
                         commentFlag = True
                     elif c == "\n":
@@ -88,7 +88,7 @@ class Main:
                             if len(currTuple) < 3:
                                 currTuple += (int(currValue),)
                             else:
-                                currTuple += (int(currValue, 16),)
+                                currTuple += (int(currValue, 16),) # Converts hex color to decimal
                             currValue = ""
                         elif c == '}':
                             self.objects.append(Object3D(currVertices, currMesh))
@@ -100,7 +100,7 @@ class Main:
         """
         Merges the properties (vertices and mesh) of the objects to render in one big
         object. This is done so that the renderer can sort all triangles by distance 
-        to the camera in one operation, which is required to display the faces in the 
+        to the camera in one operation, which is required to display the surfaces in the 
         correct order.
         """
         mergedVertices = []
