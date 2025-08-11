@@ -25,6 +25,7 @@ class Main:
         self.MergeObjects()
             
         self.rend = Renderer(self.screen, self.objects)
+        self.rend.ApplyShadows()
 
 
     def Loop(self):

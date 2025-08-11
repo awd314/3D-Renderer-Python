@@ -22,6 +22,56 @@ class Renderer:
         ])
     
 
+    def Normalize(self, v):
+        """
+        Returns a normalized version of a given vector. Ex : (3, 4, 0) -> 
+        (3/5, 2/5, 0). The vector is first scaled to a smaller version because for 
+        large values of the coordinates, we get integer overflows that mess up with
+        the sqrt and the norm.
+        """
+        coef = max([abs(v[i]) for i in range(3)])
+        normalizedVector = [v[i] / coef for i in range(3)]
+        norm = sqrt(sum([normalizedVector[i] * normalizedVector[i] for i in range(3)]))
+        normalizedVector = [normalizedVector[i] / norm for i in range(3)]
+        return normalizedVector
+    
+
+    def ApplyShadows(self):
+        """
+        Sets up a light source on the z axis behind the camera. It doesn't follow
+        the camera movements. Since everything in the scene is static, the light
+        rays are calculated once and not every frame.
+
+        Light rays are all supposed parallel and colinear to vector (0, 0, 1). As
+        such, to know how dark a surface has to be, we first calculate the normal
+        vector to that surface. Then, we apply a dot product with the light rays
+        to deduce the angle of incidence of the ray upon the surface. From that angle,
+        we can come up with a coefficient indicating how much a surface needs to be darkened.
+        """
+        if self.objectToRender.mesh is not None:
+            shadowMesh = []
+            vertices = self.objectToRender.vertices
+            for triangle in self.objectToRender.mesh:
+                # Gets two vectors of the current triangle and calculates the normal with a cross product
+                vector1 = [vertices[triangle[1]][i] - vertices[triangle[0]][i] for i in range(3)]
+                vector2 = [vertices[triangle[2]][i] - vertices[triangle[0]][i] for i in range(3)]
+                normal = self.Normalize(cross(vector1, vector2))
+
+                # Calculates the dor product and deduces the angle of incidence of the light rays
+                incidenceAngle = arccos(dot(normal, (0, 0, 1)))
+                shadowCoef = max((incidenceAngle) / pi, MAX_SHADOW_COEF) # Deduces a shadow coefficient based on the angle
+                color = hex(triangle[3])[2:] # Gets the current color of the triangle and converts it to hexadecimal
+                while len(color) < 6:
+                    color = '0' + color # Adding '0' if necessary to get in the proper format of length 6 (#XXXXXX)
+                rgb = [hex(int(int(color[i*2:i*2+2], 16) * shadowCoef))[2:] for i in range(3)] # Scales each component by the shadow coefficient and gets the new darkened color
+                for i in range(3):
+                    if len(rgb[i]) == 1:
+                        rgb[i] = '0' + rgb[i] # Formats new color
+                newColor = int("".join(rgb), 16)
+                shadowMesh.append((triangle[0], triangle[1], triangle[2], newColor)) # Updates the mesh
+            self.objectToRender.mesh = shadowMesh
+    
+
     def RenderObjects(self):
         """
         Calculates the position of the objects to render and displays them on the
@@ -45,8 +95,8 @@ class Renderer:
                 # Back face culling - all triangles facing the wrong way are not drawn
                 # Here we try to determine if the current triangle if facing the correct way. For that, we take two vectors of said triangle and calculate a cross product, 
                 # giving us the normal vector to the surface
-                vector1 = [updatedVertices[triangle[1]][0] - updatedVertices[triangle[0]][0], updatedVertices[triangle[1]][1] - updatedVertices[triangle[0]][1]]
-                vector2 = [updatedVertices[triangle[2]][0] - updatedVertices[triangle[0]][0], updatedVertices[triangle[2]][1] - updatedVertices[triangle[0]][1]]
+                vector1 = [updatedVertices[triangle[1]][i] - updatedVertices[triangle[0]][i] for i in range(2)]
+                vector2 = [updatedVertices[triangle[2]][i] - updatedVertices[triangle[0]][i] for i in range(2)]
                 if vector1[0] * vector2[1] - vector1[1] * vector2[0] < 0: # Normal points towards the camera / z is negative
                     self.DrawTriangle(triangle, updatedVertices)
     
