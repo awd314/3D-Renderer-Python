@@ -9,11 +9,11 @@ The following libraries are required to run the program :
 
 ## Description
 
-This is a simple 3D renderer capable of displaying a few solids at once. It doesn't allow texture rendering and only works with convex polyhedrons. It is a small project to experiment with rotation matrices, perspective projection, hidden surface determination, etc.
+This is a simple 3D renderer capable of displaying a few solids at once with basic shadow rendering. It doesn't allow texture rendering and only works with convex polyhedrons. It is a small project to experiment with rotation matrices, perspective projection, hidden surface determination, etc.
 
 ## How to configure the scene
 
-Configuring the objects to display is done in the `objects.txt` file. By default, there's a dodecagonal prism. The format of this file is as follows : 
+Configuring the objects to display is done in the `objects.txt` file. By default, there's a dodecagonal prism, a cube and a pyramid. The format of this file is as follows : 
 
 Reserved characters are `{} [] () # , - and digits`. To include comments, begin a line with `?`. To declare a new object, use `{}`. Each object contains two lists, for the vertices and for the mesh, both declared with `[]`.
 
