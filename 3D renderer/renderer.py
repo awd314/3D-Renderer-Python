@@ -1,5 +1,5 @@
 from settings import *
-from numpy import *
+import numpy as np
 import pygame as pg
 
 
@@ -15,11 +15,14 @@ class Renderer:
 
         self.rotations = [0, 0] # [y rotation : theta, x rotation : phi]
         self.camera = [0, 0, 0] # Camera position
-        self.base = array([ # x, y, and z axis scaled to CAM_SPEED parameter
+        self.acceleration = [0, 0, 0] # Camera acceleration
+        self.rotationAcceleration = [0, 0] # Angular acceleration of the camera
+        self.base = np.array([ # x, y, and z axis scaled to CAM_SPEED parameter
             [CAM_SPEED, 0, 0],
             [0, CAM_SPEED, 0],
             [0, 0, CAM_SPEED]
         ])
+        self.lightRay = (1, 0, 0) # Direction of the light ray
     
 
     def Normalize(self, v):
@@ -29,10 +32,10 @@ class Renderer:
         large values of the coordinates, we get integer overflows that mess up with
         the sqrt and the norm.
         """
-        coef = max([abs(v[i]) for i in range(3)])
-        normalizedVector = [v[i] / coef for i in range(3)]
-        norm = sqrt(sum([normalizedVector[i] * normalizedVector[i] for i in range(3)]))
-        normalizedVector = [normalizedVector[i] / norm for i in range(3)]
+        coef = max([abs(v[i]) for i in range(3)]) # Gets max coordinate (in abs) of the given vector
+        normalizedVector = [v[i] / coef for i in range(3)] # Scales the vector by that coordinate
+        norm = np.sqrt(sum([normalizedVector[i] * normalizedVector[i] for i in range(3)])) # Calculates the norm
+        normalizedVector = [normalizedVector[i] / norm for i in range(3)] # Divides each component by the norm to normalize the vector
         return normalizedVector
     
 
@@ -55,10 +58,10 @@ class Renderer:
                 # Gets two vectors of the current triangle and calculates the normal with a cross product
                 vector1 = [vertices[triangle[1]][i] - vertices[triangle[0]][i] for i in range(3)]
                 vector2 = [vertices[triangle[2]][i] - vertices[triangle[0]][i] for i in range(3)]
-                normal = self.Normalize(cross(vector1, vector2))
+                normal = self.Normalize(np.cross(vector1, vector2))
 
-                # Calculates the dor product and deduces the angle of incidence of the light rays
-                incidenceAngle = arccos(dot(normal, (0, 0, 1)))
+                # Calculates the dot product and deduces the angle of incidence of the light rays
+                incidenceAngle = np.arccos(np.dot(normal, self.lightRay))
                 shadowCoef = max((incidenceAngle) / pi, MAX_SHADOW_COEF) # Deduces a shadow coefficient based on the angle
                 color = hex(triangle[3])[2:] # Gets the current color of the triangle and converts it to hexadecimal
                 while len(color) < 6:
@@ -89,17 +92,18 @@ class Renderer:
         if self.objectToRender.mesh is not None:
             updatedVertices = self.GetUpdatedObjectVertices(self.objectToRender)
             # Painter's algorithm - sorts triangles by distance to the camera (reversed)
-            self.objectToRender.mesh.sort(key=lambda vertices : min(updatedVertices[vertices[0]][2], min(updatedVertices[vertices[1]][2], updatedVertices[vertices[2]][2])), reverse=True)
+            self.objectToRender.mesh.sort(key=lambda vertices : max(updatedVertices[vertices[0]][2], max(updatedVertices[vertices[1]][2], updatedVertices[vertices[2]][2])), reverse=True)
 
             for triangle in self.objectToRender.mesh:
-                # Back face culling - all triangles facing the wrong way are not drawn
-                # Here we try to determine if the current triangle if facing the correct way. For that, we take two vectors of said triangle and calculate a cross product, 
-                # giving us the normal vector to the surface
-                vector1 = [updatedVertices[triangle[1]][i] - updatedVertices[triangle[0]][i] for i in range(2)]
-                vector2 = [updatedVertices[triangle[2]][i] - updatedVertices[triangle[0]][i] for i in range(2)]
-                if vector1[0] * vector2[1] - vector1[1] * vector2[0] < 0: # Normal points towards the camera / z is negative
-                    self.DrawTriangle(triangle, updatedVertices)
-    
+                if abs(updatedVertices[triangle[0]][2]) < RENDER_DISTANCE:
+                    # Back face culling - all triangles facing the wrong way are not drawn
+                    # Here we try to determine if the current triangle if facing the correct way. For that, we take two vectors of said triangle and calculate a cross product, 
+                    # giving us the normal vector to the surface
+                    vector1 = [updatedVertices[triangle[1]][i] - updatedVertices[triangle[0]][i] for i in range(2)]
+                    vector2 = [updatedVertices[triangle[2]][i] - updatedVertices[triangle[0]][i] for i in range(2)]
+                    if vector1[0] * vector2[1] - vector1[1] * vector2[0] < 0: # Normal points towards the camera / z is negative
+                        self.DrawTriangle(triangle, updatedVertices)
+        
 
     def GetUpdatedObjectVertices(self, obj3d):
         """
@@ -122,7 +126,7 @@ class Renderer:
         Resets the base (x, y, and z axis) vectors and rotates them to update to the
         current rotation.
         """
-        self.base = array([
+        self.base = np.array([
             [CAM_SPEED, 0, 0],
             [0, CAM_SPEED, 0],
             [0, 0, CAM_SPEED]
@@ -153,7 +157,7 @@ class Renderer:
         Returns a new vector whose coordinates are shifted by the current camera
         position.
         """
-        translatedVector = array(v)
+        translatedVector = np.array(v)
         
         for i in range(3):
             # Moves the vector along the camera position
@@ -171,25 +175,25 @@ class Renderer:
         The 'baseFlag' flag indicates a specific rotation for the base vectors, x, y and
         z, as they recquire a backwards rotation only on the phi rotation.
         """
-        rotatedVector = array(v)
+        rotatedVector = np.array(v)
 
         # Gets rotation angles
         theta = reversed * self.rotations[0]
         phi = reversed * self.rotations[1]
 
         # Rotation along y axis (theta)
-        rotatedVector = dot(rotatedVector, array([
-            [cos(theta), 0, sin(theta)],
+        rotatedVector = np.dot(rotatedVector, np.array([
+            [np.cos(theta), 0, np.sin(theta)],
             [0, 1, 0],
-            [-sin(theta), 0, cos(theta)]
+            [-np.sin(theta), 0, np.cos(theta)]
         ]))
 
         if baseFlag == -1:
             # Rotation along x axis (phi)
-            rotatedVector = dot(rotatedVector, array([
+            rotatedVector = np.dot(rotatedVector, np.array([
                 [1, 0, 0],
-                [0, cos(phi), -sin(phi)],
-                [0, sin(phi), cos(phi)]
+                [0, np.cos(phi), -np.sin(phi)],
+                [0, np.sin(phi), np.cos(phi)]
             ]))
 
         return rotatedVector
@@ -205,7 +209,7 @@ class Renderer:
         For each vector, we calculate the dimensions of the plane it's inscribed in. The vector's x and
         y coordinates are then appropriately scaled on the screen according to those dimensions.
         """
-        pV = array(v)
+        pV = np.array(v)
         if v[2] != 0:
             # Perspective projection, calculates width and height of the plane the vector is inscribed in
             vectorSurfaceWidth = (SCREEN_DST + v[2]) * WIDTH / SCREEN_DST
@@ -216,6 +220,21 @@ class Renderer:
             pV[1] *= HEIGHT / vectorSurfaceHeigth
         
         return pV
+
+
+    def UpdateCam(self):
+        """
+        Moves the camera in the direction and instensity of its acceleration.
+        This acceleration decreases with time. Also rotates the camera by current
+        rotations.
+        """
+        for i in range(3):
+            self.camera[i] += self.acceleration[i]
+            self.acceleration[i] *= 0.9
+        for i in range(2):
+            self.rotations[i] += self.rotationAcceleration[i]
+            self.rotationAcceleration[i] *= 0.9
+
     
 
     def MoveCamX(self, reversed=1):
@@ -225,7 +244,7 @@ class Renderer:
         into negative x values.
         """
         for i in range(3):
-            self.camera[i] += reversed * self.base[0][i]
+            self.acceleration[i] += reversed * self.base[0][i]
     
 
     def MoveCamY(self, reversed=1):
@@ -234,7 +253,7 @@ class Renderer:
         of the base.
         """
         for i in range(3):
-            self.camera[i] += reversed * self.base[1][i]
+            self.acceleration[i] += reversed * self.base[1][i]
     
 
     def MoveCamZ(self, reversed=1):
@@ -243,7 +262,7 @@ class Renderer:
         of the base.
         """
         for i in range(3):
-            self.camera[i] += reversed * self.base[2][i]
+            self.acceleration[i] += reversed * self.base[2][i]
      
 
     def DrawLine(self, v1, v2):
@@ -275,7 +294,7 @@ class Renderer:
         p3 = vertices[triangle[2]]
 
         # Reads color code in hex
-        color = hex(abs(triangle[3]))[2:]
+        color = hex(triangle[3])[2:]
         while len(color) < 6:
             color = '0' + color
         color = '#' + color

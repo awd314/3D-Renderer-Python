@@ -23,6 +23,15 @@ class Main:
         self.objects = []
         self.GetObjects()
         self.MergeObjects()
+
+        # objectCopy = Object3D(pos=(5000, 0, 7000))
+        # objectCopy.CopyStructure(self.objects[0])
+        # self.objects.append(objectCopy)
+
+        self.MergeObjects()
+        
+        self.objects = self.objects[0]
+        print(len(self.objects.mesh))
             
         self.rend = Renderer(self.screen, self.objects)
         self.rend.ApplyShadows()
@@ -44,6 +53,7 @@ class Main:
 
             self.rend.UpdateBase()
             self.rend.RenderObjects()
+            self.rend.UpdateCam()
 
             ####  END TEST ZONE
 
@@ -93,7 +103,7 @@ class Main:
                             currValue = ""
                         elif c == '}':
                             self.objects.append(Object3D(currVertices, currMesh))
-                        elif c.upper() in "-0123456789ABCDEF":
+                        elif c.upper() in "-0123456789ABCDEF.":
                             currValue += c
     
 
@@ -120,7 +130,7 @@ class Main:
             mergedMeshes += objects.mesh
             mergedVertices += objects.vertices
 
-        self.objects = Object3D(mergedVertices, mergedMeshes)
+        self.objects = [Object3D(mergedVertices, mergedMeshes)]
     
 
     def ReadMouseMovements(self):
@@ -149,13 +159,13 @@ class Main:
         # Keys pressed continously
         keys = pg.key.get_pressed()
         if keys[pg.K_a]: # Looking left
-            self.rend.rotations[0] -= pi/100
+            self.rend.rotationAcceleration[0] -= ROTATION_SPEED
         if keys[pg.K_e]: # Looking right
-            self.rend.rotations[0] += pi/100
+            self.rend.rotationAcceleration[0] += ROTATION_SPEED
         if keys[pg.K_DOWN]: # Looking down
-            self.rend.rotations[1] -= pi/100
+            self.rend.rotationAcceleration[1] -= ROTATION_SPEED
         if keys[pg.K_UP]: # Looking up
-            self.rend.rotations[1] += pi/100
+            self.rend.rotationAcceleration[1] += ROTATION_SPEED
         if keys[pg.K_z]: # Moving forward
             self.rend.MoveCamZ(-1)
         if keys[pg.K_s]: # Moving backwards
