@@ -24,14 +24,13 @@ class Main:
         self.GetObjects()
         self.MergeObjects()
 
-        # objectCopy = Object3D(pos=(5000, 0, 7000))
-        # objectCopy.CopyStructure(self.objects[0])
-        # self.objects.append(objectCopy)
+        objectCopy = Object3D(pos=(5000, 0, 7000))
+        objectCopy.CopyStructure(self.objects[0])
+        self.objects.append(objectCopy)
 
         self.MergeObjects()
         
         self.objects = self.objects[0]
-        print(len(self.objects.mesh))
             
         self.rend = Renderer(self.screen, self.objects)
         self.rend.ApplyShadows()

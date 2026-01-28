@@ -22,7 +22,7 @@ class Renderer:
             [0, CAM_SPEED, 0],
             [0, 0, CAM_SPEED]
         ])
-        self.lightRay = (1, 0, 0) # Direction of the light ray
+        self.lightRay = self.Normalize((-1, 0, 0)) # Direction of the light ray
     
 
     def Normalize(self, v):

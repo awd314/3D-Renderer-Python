@@ -13,7 +13,7 @@ This is a simple 3D renderer capable of displaying a few solids at once with bas
 
 ## How to configure the scene
 
-Configuring the objects to display is done in the `objects.txt` file. By default, there's a dodecagonal prism, a cube and a pyramid. The format of this file is as follows : 
+Configuring the objects to display is done in the `objects.txt` file. By default, there's two hand-made star destroyers from Star Wars (they're actually not finished but it doesn't matter for the purpose of the demo). The format of this file is as follows : 
 
 Reserved characters are `{} [] () # , - and digits`. To include comments, begin a line with `?`. To declare a new object, use `{}`. Each object contains two lists, for the vertices and for the mesh, both declared with `[]`.
 
